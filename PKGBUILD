@@ -2,13 +2,13 @@
 # Contributor: Vince Liuice <vinceliuice@hotmail.com> (original Qogir-icon-theme)
 #
 # Builds our fork Lin-WMDE/wmde-icons-base (branch wmde) of the Qogir icon theme.
-# Data-only: installs /usr/share/icons/WMDE-Base and /usr/share/icons/WMDE-Base-Dark.
+# Data-only: installs /usr/share/icons/WMDE and /usr/share/icons/WMDE-Dark.
 #
-# This is the FALLBACK art for wmde-icons, not a theme a user selects. It exists because
-# Qt looks up plain (non -symbolic) icon names and wmde-icons ships most of its action
-# art as -symbolic only; this set fills those names, and it does so in two ink colours,
-# so the Qt writer can pick a set per light/dark mode again. It replaces the breeze-icons
-# fallback wmde-icons used before.
+# NOTE ON THE NAME: "base" is historical - this started as a fallback set filling the
+# plain (non -symbolic) names Qt asks for and wmde-icons lacked. It is now the base layer
+# in the other sense: this art IS the WMDE look and owns the user-facing theme names.
+# wmde-icons provides WMDE-Extra underneath it, for the WMDE-specific names this set has
+# no art for. The package was not renamed to avoid a provides/replaces migration.
 #
 # Separate package on purpose: wmde-icons is CC-BY-SA (Cosmic/Pop/Adwaita art) and this
 # is GPL-3.0. CC-BY-SA-4.0 -> GPLv3 is a ONE-WAY compatibility and CC-BY-SA-3.0 has none
@@ -20,13 +20,14 @@
 pkgname=wmde-icons-base
 pkgver=1.0.0
 pkgrel=1
-pkgdesc="WMDE base icon art (fork of Qogir) - fallback set for wmde-icons, light and dark ink"
+pkgdesc="WMDE icon theme (fork of Qogir) - installs /usr/share/icons/WMDE{,-Dark}"
 arch=('any')
 url="https://wmde.fun"
 # Upstream carries the plain GPLv3 text with no "or (at your option) any later version"
 # grant anywhere, so this is GPL-3.0-only, not -or-later.
 license=('GPL-3.0-only')
-depends=('hicolor-icon-theme')
+# wmde-icons supplies WMDE-Extra, the last stop before hicolor in both themes' chains.
+depends=('hicolor-icon-theme' 'wmde-icons')
 makedepends=('just' 'git')
 source=("$pkgname::git+https://github.com/Lin-WMDE/wmde-icons-base.git#branch=wmde")
 sha256sums=('SKIP')

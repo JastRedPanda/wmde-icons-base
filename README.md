@@ -4,19 +4,24 @@ WMDE Base Icons
 **This is a modified fork of the [Qogir icon theme](https://github.com/vinceliuice/Qogir-icon-theme)
 by Vince Liuice.** Forked and modified by the WMDE project starting 2026-07-28.
 
-It provides the fallback icon art for the WMDE desktop. It is not a theme a user picks:
-`wmde-icons` (the `WMDE` / `WMDE-Dark` themes) inherits from it for the plain icon names
-Qt applications look up and which WMDE itself ships as `-symbolic` only.
+This art is the WMDE desktop's icon look. It installs the two user-facing themes and
+falls through to `WMDE-Extra` (package `wmde-icons`) for the WMDE-specific names it has
+no art for:
+
+    WMDE-Dark (light ink) -> WMDE (all of the art) -> WMDE-Extra -> hicolor
+    WMDE      (dark ink)  -> WMDE-Extra -> hicolor
 
 ## Changes from upstream
 
 - Added `wmde-install.sh`, `justfile` and `PKGBUILD` for packaging. Upstream `install.sh`
   is left in place, unmodified.
-- Installs two themes, `WMDE-Base` (dark ink, for light backgrounds) and `WMDE-Base-Dark`
-  (light ink, for dark backgrounds), instead of upstream's `Qogir*` names.
-- `WMDE-Base-Dark` reaches the rest of the art through `Inherits=WMDE-Base` rather than
-  upstream's ~20 relative symlinks back into the base theme.
-- Both themes inherit `hicolor` only; upstream also inherits `breeze`.
+- Installs two themes, `WMDE` (dark ink, for light backgrounds) and `WMDE-Dark` (light
+  ink, for dark backgrounds), instead of upstream's `Qogir*` names.
+- `WMDE-Dark` reaches the rest of the art through `Inherits=WMDE` rather than upstream's
+  ~20 relative symlinks back into the base theme.
+- Both themes fall through to `WMDE-Extra` and `hicolor`; upstream inherits `breeze`.
+- `WMDE-Dark` is `Hidden=true` - the settings daemon switches to it by mode, it is not a
+  separate choice in the icon-theme picker.
 - The X cursor themes and the Manjaro/Ubuntu colour variants are not built or shipped.
 
 No icon artwork has been altered.

@@ -8,14 +8,18 @@
 # option is only half-implemented (it seds ${name} in an index.theme that still says
 # "Qogir", so a renamed theme keeps Name=Qogir).
 #
-# We install exactly two themes:
-#   WMDE-Base       full art, DARK ink (#5d656b) - the set for LIGHT backgrounds
-#   WMDE-Base-Dark  actions/places/devices recoloured to LIGHT ink (#d3dae3), the rest
-#                   inherited from WMDE-Base - the set for DARK backgrounds
+# This art IS the WMDE look. The themes installed here own the user-facing names:
+#   WMDE       full art, DARK ink (#5d656b) - the set for LIGHT backgrounds
+#   WMDE-Dark  actions/places/devices recoloured to LIGHT ink (#d3dae3), the rest
+#              inherited from WMDE - the set for DARK backgrounds
 #
-# Upstream builds the Dark variant out of ~20 relative symlinks back into the base
-# theme; Inherits= does the same job with no symlinks, and the precedence is right
-# because the only dirs Dark carries are the ones it recolours.
+# Both fall through to WMDE-Extra (package wmde-icons), which carries the WMDE-specific
+# art this theme has no name for: our own app icons, the distro logos, the
+# wmde-illustration-* art, 111 places and 130 categories names.
+#
+# WMDE-Dark inherits WMDE, and the order that produces is exactly right:
+#   WMDE-Dark (light ink) -> WMDE (all Qogir art) -> WMDE-Extra (ours) -> hicolor
+# Depth-first resolution is unforgiving here - see the note in wmde-icons/index.theme.
 #
 # Usage: wmde-install.sh <icons-dir>      e.g. "$pkgdir/usr/share/icons"
 
@@ -24,8 +28,9 @@ set -euo pipefail
 SRC_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 DEST=${1:?usage: wmde-install.sh <icons-dir>}
 
-BASE=WMDE-Base
-DARK=WMDE-Base-Dark
+BASE=WMDE
+DARK=WMDE-Dark
+EXTRA=WMDE-Extra
 
 # The two ink colours upstream art is drawn in.
 INK_DARK='#5d656b'
@@ -42,7 +47,8 @@ install_base() {
   cp -a "$SRC_DIR"/src/{16,22,24,32,48,96,128,scalable,symbolic} "$dir/"
   cp -a "$SRC_DIR"/links/{16,22,24,32,48,96,128,scalable,symbolic} "$dir/"
 
-  write_index "$dir" "$BASE" 'hicolor'
+  # The one theme a user is meant to see in the picker, so no Hidden= here.
+  write_index "$dir" "$BASE" 'WMDE Icons' "$EXTRA,hicolor" ''
   link_2x "$dir" 16 22 24 32 48 96 128 scalable
 }
 
@@ -68,17 +74,25 @@ install_dark() {
   cp -a "$SRC_DIR"/links/24/{actions,places,devices} "$dir/24/"
   cp -a "$SRC_DIR"/links/32/actions "$dir/32/"
 
-  write_index "$dir" "$DARK" "$BASE,hicolor"
+  # Hidden: the settings daemon switches to this by mode, it is not a separate choice.
+  write_index "$dir" "$DARK" 'WMDE Icons (dark)' "$BASE,hicolor" 'true'
   link_2x "$dir" 16 22 24 32
 }
 
-# The shipped index.theme names the theme and its fallback on exactly two lines; the
-# Directories list is the same for both variants (entries whose directory is absent are
-# skipped by the icon loaders, which is what makes the Dark variant's inheritance work).
+# The shipped index.theme names the theme and its fallback on three lines; the Directories
+# list is the same for both variants (entries whose directory is absent are skipped by the
+# icon loaders, which is what makes the Dark variant's inheritance work).
 write_index() {
-  local dir=$1 name=$2 inherits=$3
+  local dir=$1 name=$2 comment=$3 inherits=$4 hidden=$5
+  local inherits_block="Inherits=$inherits"
+  [ -n "$hidden" ] && inherits_block="Hidden=$hidden\nInherits=$inherits"
+
   install -Dm0644 "$SRC_DIR/src/index.theme" "$dir/index.theme"
-  sed -i -e "s/^Name=.*/Name=$name/" -e "s/^Inherits=.*/Inherits=$inherits/" "$dir/index.theme"
+  sed -i \
+    -e "s/^Name=.*/Name=$name/" \
+    -e "s/^Comment=.*/Comment=$comment/" \
+    -e "s/^Inherits=.*/$inherits_block/" \
+    "$dir/index.theme"
 
   install -Dm0644 "$SRC_DIR/COPYING" "$dir/COPYING"
   install -Dm0644 "$SRC_DIR/AUTHORS" "$dir/AUTHORS"
