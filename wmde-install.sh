@@ -106,5 +106,29 @@ link_2x() {
   done
 }
 
+# Upstream bug: 28 files carry filter="url(#a)" while defining no such filter - the <defs>
+# block was dropped somewhere in their tooling. Per the SVG spec a reference to a
+# non-existent filter means the element is NOT RENDERED, so resvg (what libcosmic and iced
+# draw with) shows nothing at all. librsvg forgives it, which is why the same icons look
+# fine in GTK applications and vanish in ours. network-wired-symbolic is one of them, so a
+# machine on ethernet had an empty slot in the panel.
+#
+# Only regular files: -type f without -L, because the alias symlinks must not be turned
+# into private copies by sed -i.
+strip_dangling_filters() {
+  local dir=$1 f id
+  local n=0
+  while IFS= read -r f; do
+    for id in $(grep -o 'filter="url(#[^)]*)"' "$f" | sed 's/.*#\(.*\))"/\1/' | sort -u); do
+      grep -q "filter[^>]*id=\"$id\"" "$f" && continue
+      sed -i "s/ filter=\"url(#$id)\"//g" "$f"
+      n=$((n + 1))
+    done
+  done < <(grep -rl 'filter="url(#' "$dir" --include='*.svg' 2>/dev/null | while read -r p; do [ -f "$p" ] && [ ! -L "$p" ] && echo "$p"; done)
+  echo "  stripped dangling filter refs in $n file(s) under $(basename "$dir")"
+}
+
 install_base
 install_dark
+strip_dangling_filters "$DEST/$BASE"
+strip_dangling_filters "$DEST/$DARK"
