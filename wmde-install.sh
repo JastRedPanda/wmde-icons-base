@@ -128,7 +128,32 @@ strip_dangling_filters() {
   echo "  stripped dangling filter refs in $n file(s) under $(basename "$dir")"
 }
 
+# WMDE art overlaid on top of upstream's, by file name. Upstream files are never edited in
+# place, so merges from Qogir stay trivial - the overlay simply wins afterwards.
+#
+# user-desktop: upstream draws it as a grey window at EVERY size, the one places icon that is
+# not the blue folder the rest of the set uses. In a sidebar full of blue folders it reads as
+# a dark blob. Ours is the stock folder with a monitor emblem, drawn in Qogir's own emblem
+# style (black at .3 for the outline and .15 for the fill, same box as the home and documents
+# emblems). Only the sizes that use the colour style are replaced: 16/22/24 are the mono
+# outline style, where a grey window is exactly right.
+#
+# The alias symlinks (user-desktop.svg -> default-user-desktop.svg) keep working because the
+# target file is what gets replaced.
+overlay_wmde_art() {
+  local dir="$DEST/$BASE" d
+  for d in 32 48 96 128 scalable; do
+    # width/height track the directory; the viewBox is what actually scales the geometry.
+    local px=$d
+    [ "$d" = scalable ] && px=64
+    sed "s/^<svg width=\"64\" height=\"64\"/<svg width=\"$px\" height=\"$px\"/" \
+      "$SRC_DIR/wmde-art/places/default-user-desktop.svg" \
+      > "$dir/$d/places/default-user-desktop.svg"
+  done
+}
+
 install_base
 install_dark
+overlay_wmde_art
 strip_dangling_filters "$DEST/$BASE"
 strip_dangling_filters "$DEST/$DARK"

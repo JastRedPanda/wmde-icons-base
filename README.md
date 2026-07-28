@@ -23,8 +23,19 @@ no art for:
 - `WMDE-Dark` is `Hidden=true` - the settings daemon switches to it by mode, it is not a
   separate choice in the icon-theme picker.
 - The X cursor themes and the Manjaro/Ubuntu colour variants are not built or shipped.
-
-No icon artwork has been altered.
+- Two artwork changes, both applied at install time so that upstream's own files stay
+  untouched and merges from Qogir remain trivial:
+  - `wmde-art/places/default-user-desktop.svg` replaces upstream's `user-desktop` in the
+    colour-style sizes (32, 48, 96, 128, scalable). Upstream draws it as a grey window at
+    every size - the one `places` icon that is not the blue folder the rest of the set
+    uses, which makes it read as a dark blob in a sidebar full of folders. Ours is the
+    stock `default-folder` with a monitor emblem drawn in Qogir's own emblem style (black
+    at `.3` for the outline and `.15` for the fill, in the same box the home and documents
+    emblems use). The 16/22/24 sizes are the mono outline style and are left alone.
+  - `filter="url(#...)"` references with no matching filter definition are stripped (24
+    files, 12 names). Per the SVG spec such an element is not rendered at all, and resvg -
+    what the WMDE apps draw with - obeys that, so those icons came out blank while
+    librsvg-based GTK applications showed them fine.
 
 ## Licence
 
