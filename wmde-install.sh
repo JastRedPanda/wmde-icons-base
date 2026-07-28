@@ -36,6 +36,20 @@ EXTRA=WMDE-Extra
 INK_DARK='#5d656b'
 INK_LIGHT='#d3dae3'
 
+# The folder palette, read off upstream's own default-folder.svg. Used to bring the odd
+# grey-drawn places icon into line with the rest of the set.
+FOLDER_BODY='#6ba4e7'
+FOLDER_LINE='#003579'
+FOLDER_LINE_OPACITY='.561'
+# The greys upstream draws its appliance-style icons in.
+GREY_BODY='#636a78'
+GREY_LINE='#272a2f'
+GREY_LINE_OPACITY='.784'
+
+# The sizes drawn in the full-colour style. 16/22/24 are the mono outline style and are a
+# different design, not a smaller version of this one - they are never touched here.
+COLOUR_SIZES="32 48 96 128 scalable"
+
 # cp -a throughout: links/ is a farm of relative same-directory symlinks (alias name ->
 # real icon) and dereferencing them would multiply the theme size several times over.
 
@@ -142,7 +156,7 @@ strip_dangling_filters() {
 # target file is what gets replaced.
 overlay_wmde_art() {
   local dir="$DEST/$BASE" d
-  for d in 32 48 96 128 scalable; do
+  for d in $COLOUR_SIZES; do
     # width/height track the directory; the viewBox is what actually scales the geometry.
     local px=$d
     [ "$d" = scalable ] && px=64
@@ -152,8 +166,34 @@ overlay_wmde_art() {
   done
 }
 
+# WMDE: repaint the trash bin in the folder palette. Upstream draws it in the same grey as
+# the appliance icons, so in a sidebar of blue folders it is the one item that reads as a
+# different set. The shape is upstream's and stays - a bin has to look like a bin - and so
+# does the white recycle symbol; only body and outline change, to the exact values
+# default-folder.svg uses.
+#
+# user-trash.svg and user-trash-full.svg are the only real files: the ~18 other trash names
+# in each directory (edittrash, gnome-fs-trash-*, xfce-trash_*, ...) are symlinks to these
+# two, so repainting them carries the whole lot. Symlinks are skipped explicitly, because
+# sed -i on one would replace it with a private copy.
+recolour_trash() {
+  local dir="$DEST/$BASE" d n f
+  for d in $COLOUR_SIZES; do
+    for n in user-trash user-trash-full; do
+      f="$dir/$d/places/$n.svg"
+      [ -f "$f" ] && [ ! -L "$f" ] || continue
+      sed -i \
+        -e "s/$GREY_BODY/$FOLDER_BODY/g" \
+        -e "s/$GREY_LINE/$FOLDER_LINE/g" \
+        -e "s/stroke-opacity=\"$GREY_LINE_OPACITY\"/stroke-opacity=\"$FOLDER_LINE_OPACITY\"/g" \
+        "$f"
+    done
+  done
+}
+
 install_base
 install_dark
 overlay_wmde_art
+recolour_trash
 strip_dangling_filters "$DEST/$BASE"
 strip_dangling_filters "$DEST/$DARK"

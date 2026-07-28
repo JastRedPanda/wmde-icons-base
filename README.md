@@ -32,6 +32,13 @@ no art for:
     stock `default-folder` with a monitor emblem drawn in Qogir's own emblem style (black
     at `.3` for the outline and `.15` for the fill, in the same box the home and documents
     emblems use). The 16/22/24 sizes are the mono outline style and are left alone.
+  - `user-trash` and `user-trash-full` are repainted in the folder palette (body `#6ba4e7`,
+    outline `#003579` at `.561` - the exact values `default-folder.svg` uses), again only
+    in the colour-style sizes. Upstream draws the bin in its appliance grey, which made it
+    the one sidebar item that read as coming from a different set. The shape and the white
+    recycle symbol are upstream's and are unchanged. The ~18 other trash names per size
+    (`edittrash`, `gnome-fs-trash-*`, `xfce-trash_*`, ...) are symlinks to these two files
+    and follow automatically.
   - `filter="url(#...)"` references with no matching filter definition are stripped (24
     files, 12 names). Per the SVG spec such an element is not rendered at all, and resvg -
     what the WMDE apps draw with - obeys that, so those icons came out blank while
