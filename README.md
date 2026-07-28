@@ -1,39 +1,44 @@
-# Qogir Icon Theme
-A flat colorful design icon theme for linux desktops
+WMDE Base Icons
+===============
 
-## Donate
+**This is a modified fork of the [Qogir icon theme](https://github.com/vinceliuice/Qogir-icon-theme)
+by Vince Liuice.** Forked and modified by the WMDE project starting 2026-07-28.
 
-If you like my project, you can buy me a coffee:
+It provides the fallback icon art for the WMDE desktop. It is not a theme a user picks:
+`wmde-icons` (the `WMDE` / `WMDE-Dark` themes) inherits from it for the plain icon names
+Qt applications look up and which WMDE itself ships as `-symbolic` only.
 
-<span class="paypal"><a href="https://www.paypal.me/vinceliuice" title="Donate to this project using Paypal"><img src="https://www.paypalobjects.com/webstatic/mktg/Logo/pp-logo-100px.png" alt="PayPal donate button" /></a></span>
+## Changes from upstream
 
-## Install
+- Added `wmde-install.sh`, `justfile` and `PKGBUILD` for packaging. Upstream `install.sh`
+  is left in place, unmodified.
+- Installs two themes, `WMDE-Base` (dark ink, for light backgrounds) and `WMDE-Base-Dark`
+  (light ink, for dark backgrounds), instead of upstream's `Qogir*` names.
+- `WMDE-Base-Dark` reaches the rest of the art through `Inherits=WMDE-Base` rather than
+  upstream's ~20 relative symlinks back into the base theme.
+- Both themes inherit `hicolor` only; upstream also inherits `breeze`.
+- The X cursor themes and the Manjaro/Ubuntu colour variants are not built or shipped.
 
-```sh
-Usage: ./install.sh [OPTIONS...]
+No icon artwork has been altered.
 
-OPTIONS:
-  -d, --dest DIR           Specify theme destination directory (Default: /home/romildo/.local/share/icons)
-  -n, --name NAME          Specify theme name (Default: Qogir)
-  -t, --theme VARIANT      Specify theme primary color variant(s) [default|manjaro|ubuntu|all] (Default: all themes)
-  -c, --color VARIANT      Specify theme color variant(s) [standard|dark|all] (Default: all variants)
-  -h, --help               Show this help
-```
+## Licence
 
-### Gentoo Linux
+GPL-3.0. Upstream carries the plain GPLv3 text with no "or (at your option) any later
+version" grant, so this is GPL-3.0-**only**.
 
-Enable the [GURU overlay](https://wiki.gentoo.org/wiki/Project:GURU) then `emerge x11-themes/qogir-icon-theme`
+The upstream `AUTHORS` file is preserved and installed alongside the theme. Attribution
+for the art, per that file:
 
-### Debian/Ubuntu
+> "[Qogir icon theme](https://github.com/vinceliuice/Qogir-icon-theme)" by Vince Liuice,
+> built from "[arc-icon-theme](https://github.com/horst3180/arc-icon-theme)" (GPL-3.0),
+> "[faba-icon-theme](https://github.com/snwh/faba-icon-theme)" (GPLv3 or CC-BY-SA-4.0)
+> and "[Tela icon theme](https://github.com/vinceliuice/Tela-icon-theme)" (GPL-3.0).
 
-Install through [Pacstall](https://github.com/pacstall/pacstall): `pacstall -I qogir-icon-theme-bin`
+Kept as a separate package from `wmde-icons` on purpose: that one is CC-BY-SA art
+(Cosmic, Pop, Adwaita) and CC-BY-SA-4.0 is only *one-way* compatible with GPLv3, while
+CC-BY-SA-3.0 is not compatible at all. Merging the two sets into one tarball would force
+the whole thing under the GPL and strand the Adwaita artwork.
 
-# Qogir cursors
-This is an x-cursor theme inspired by Qogir theme
-  [Source files](src/cursors).
+## Upstream
 
-![cursors](cursors-preview.png)
-
-## Icon Preview
-![1](https://github.com/vinceliuice/Qogir-icon-theme/blob/master/preview_01.png?raw=true)
-![2](https://github.com/vinceliuice/Qogir-icon-theme/blob/master/preview_02.png?raw=true)
+Upstream README, install options and previews: https://github.com/vinceliuice/Qogir-icon-theme

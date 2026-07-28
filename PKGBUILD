@@ -1,0 +1,48 @@
+# Maintainer: WMDE <https://wmde.fun>
+# Contributor: Vince Liuice <vinceliuice@hotmail.com> (original Qogir-icon-theme)
+#
+# Builds our fork Lin-WMDE/wmde-icons-base (branch wmde) of the Qogir icon theme.
+# Data-only: installs /usr/share/icons/WMDE-Base and /usr/share/icons/WMDE-Base-Dark.
+#
+# This is the FALLBACK art for wmde-icons, not a theme a user selects. It exists because
+# Qt looks up plain (non -symbolic) icon names and wmde-icons ships most of its action
+# art as -symbolic only; this set fills those names, and it does so in two ink colours,
+# so the Qt writer can pick a set per light/dark mode again. It replaces the breeze-icons
+# fallback wmde-icons used before.
+#
+# Separate package on purpose: wmde-icons is CC-BY-SA (Cosmic/Pop/Adwaita art) and this
+# is GPL-3.0. CC-BY-SA-4.0 -> GPLv3 is a ONE-WAY compatibility and CC-BY-SA-3.0 has none
+# at all, so merging the two sets into one tarball would force the whole thing to GPL and
+# strand the Adwaita art. Two packages, two licences, nothing mixed.
+#
+# We ship neither the X cursor themes nor the Manjaro/Ubuntu colour variants upstream
+# also builds.
+pkgname=wmde-icons-base
+pkgver=1.0.0
+pkgrel=1
+pkgdesc="WMDE base icon art (fork of Qogir) - fallback set for wmde-icons, light and dark ink"
+arch=('any')
+url="https://wmde.fun"
+# Upstream carries the plain GPLv3 text with no "or (at your option) any later version"
+# grant anywhere, so this is GPL-3.0-only, not -or-later.
+license=('GPL-3.0-only')
+depends=('hicolor-icon-theme')
+makedepends=('just' 'git')
+source=("$pkgname::git+https://github.com/Lin-WMDE/wmde-icons-base.git#branch=wmde")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd "$srcdir/$pkgname"
+  # WMDE unified version: 1.4 (stack base) . <commits> . g<short>.
+  # Plain rev-list, NOT git describe: upstream tags this repo by date, so a describe-based
+  # count would reset to a small number on every new upstream tag and the pkgver would go
+  # backwards - pacman would then refuse the upgrade.
+  printf '1.4.%s.g%s' "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
+}
+
+package() {
+  cd "$srcdir/$pkgname"
+  just rootdir="$pkgdir" prefix=/usr install
+  install -Dm644 COPYING "$pkgdir/usr/share/licenses/$pkgname/COPYING"
+  install -Dm644 AUTHORS "$pkgdir/usr/share/licenses/$pkgname/AUTHORS"
+}
