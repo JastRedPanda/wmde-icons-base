@@ -34,11 +34,11 @@ sha256sums=('SKIP')
 
 pkgver() {
   cd "$srcdir/$pkgname"
-  # WMDE unified version: 1.4 (stack base) . <commits> . g<short>.
+  # WMDE unified version: 1.5 (stack base) . <commits> . g<short>.
   # Plain rev-list, NOT git describe: upstream tags this repo by date, so a describe-based
   # count would reset to a small number on every new upstream tag and the pkgver would go
   # backwards - pacman would then refuse the upgrade.
-  printf '1.4.%s.g%s' "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
+  printf '1.5.%s.g%s' "$(git rev-list --count HEAD)" "$(git rev-parse --short=7 HEAD)"
 }
 
 package() {
