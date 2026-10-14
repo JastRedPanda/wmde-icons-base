@@ -1,0 +1,8 @@
+# Не даём Windows-чекаутам портить файлы CRLF (ломает shell-скрипты в пакетах).
+# links/** — симлинки: без -text Windows-чек-аут пачкает их окончаниями в diff.
+packaging/** text eol=lf
+justfile text eol=lf
+*.sh text eol=lf
+*.md text eol=lf
+.github/** text eol=lf
+links/** -text

@@ -1,0 +1,137 @@
+# Проверяет deb/rpm-упаковку: сборка, содержимое, установка в чистых контейнерах.
+#
+# Опорные платформы — Debian stable и Fedora: собранное на них встаёт везде
+# ниже по течению (Ubuntu/Mint, RHEL/openSUSE), обратное не гарантируется.
+# Поэтому .deb собираем в debian:13, .rpm — в fedora:44.
+#
+# Пакет data-only: компиляции нет, тулчейн не нужен.
+name: deb-rpm packaging
+
+on:
+  push:
+    paths:
+      - packaging/**
+      - justfile
+      - links/**
+      - WMDE/**
+      - WMDE-Dark/**
+      - wmde-install.sh
+      - INSTALL.deb-rpm.md
+      - .github/workflows/deb-rpm.yml
+  pull_request:
+    paths:
+      - packaging/**
+      - justfile
+      - links/**
+      - WMDE/**
+      - WMDE-Dark/**
+      - wmde-install.sh
+      - INSTALL.deb-rpm.md
+      - .github/workflows/deb-rpm.yml
+
+defaults:
+  run:
+    working-directory: wmde-icons-base
+
+jobs:
+  build-deb:
+    runs-on: ubuntu-24.04
+    container:
+      image: debian:13
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          path: wmde-icons-base
+      - name: Build deps
+        run: |
+          apt-get update
+          apt-get install -y curl lintian
+          curl -sSfL https://github.com/casey/just/releases/download/1.58.0/just-1.58.0-x86_64-unknown-linux-musl.tar.gz -o /tmp/just.tgz
+          tar xzf /tmp/just.tgz -C /usr/local/bin just
+      - name: Install nfpm
+        run: |
+          curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.43.0/nfpm_2.43.0_amd64.deb -o /tmp/nfpm.deb
+          apt-get install -y /tmp/nfpm.deb
+      - name: Build .deb
+        run: |
+          just deb
+          dpkg-deb -c target/*.deb | head -8
+          lintian --no-tag-display-limit target/*.deb || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wmde-icons-base-deb
+          path: wmde-icons-base/target/*.deb
+
+  build-rpm:
+    runs-on: ubuntu-24.04
+    container:
+      image: fedora:44
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          path: wmde-icons-base
+      - name: Build deps
+        run: dnf install -y tar gzip rpmdevtools rpmlint
+      - name: Install just and nfpm
+        run: |
+          curl -sSfL https://github.com/casey/just/releases/download/1.58.0/just-1.58.0-x86_64-unknown-linux-musl.tar.gz -o /tmp/just.tgz
+          tar xzf /tmp/just.tgz -C /usr/local/bin just
+          curl -sSfL https://github.com/goreleaser/nfpm/releases/download/v2.43.0/nfpm-2.43.0-1.x86_64.rpm -o /tmp/nfpm.rpm
+          dnf install -y /tmp/nfpm.rpm
+      - name: Build .rpm
+        run: |
+          just rpm
+          rpm -qpl target/*.rpm | head -8
+          rpmlint target/*.rpm || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wmde-icons-base-rpm
+          path: wmde-icons-base/target/*.rpm
+
+  install-deb:
+    needs: build-deb
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        image: ["debian:13", "ubuntu:24.04"]
+    container:
+      image: ${{ matrix.image }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: wmde-icons-base-deb
+          path: /tmp/pkg
+      - name: Install and check
+        run: |
+          apt-get update
+          apt-get install -y /tmp/pkg/*.deb
+          dpkg -l wmde-icons-base
+          test -d /usr/share/icons/WMDE
+
+  install-rpm:
+    needs: build-rpm
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        image: ["fedora:44", "opensuse/tumbleweed"]
+    container:
+      image: ${{ matrix.image }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: wmde-icons-base-rpm
+          path: /tmp/pkg
+      - name: Install and check (dnf)
+        if: startsWith(matrix.image, 'fedora')
+        run: |
+          dnf install -y /tmp/pkg/*.rpm
+          rpm -q wmde-icons-base
+          test -d /usr/share/icons/WMDE
+      - name: Install and check (zypper)
+        if: startsWith(matrix.image, 'opensuse')
+        run: |
+          zypper --non-interactive install --allow-unsigned-rpm /tmp/pkg/*.rpm
+          rpm -q wmde-icons-base
+          test -d /usr/share/icons/WMDE
